@@ -45,8 +45,18 @@ class conversation:
 
     # TCP-like functions will be defined here
 
-    def handshake():
-        pass
+    def handshake(self, own_id):
+        self.conversation_id = own_id
+        print(f"Handshake initiated with {self.conversation_id}")
+        time.sleep(1)
+        print("SYN")
+        time.sleep(1)
+        print("SYN-ACK")
+        time.sleep(1)
+        print("ACK")
+        print("Handshake completed")
+
+    #conv = conversation(1)
 
     def selective_repeat():
         pass
