@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-
+import packet
 
 class conversation:
     def __init__(self, own_id):
