@@ -1,6 +1,7 @@
 import socket
 import threading
 from conversation import conversation
+import packet
 
 # This is a Dictionary of all the current objects,
 # where each Object's Key in the dictionary is the conversation's ID
@@ -10,20 +11,15 @@ def listener(server_socket):
     while True:
         data, client_address = server_socket.recvfrom(4096)
         if data:
-            string_data = data.decode()
-            
-            # extract client ID
-            client_id = string_data[0:4]
+            # Extract Packet Header
+            pckt_header = packet.decode_header(data[:20])
 
             # check client ID against list of ongoing conversations (here this will call a checker function,
             # that returns a pointer or reference to a pre-existing or new conversation object)
-            conversation_object = conversation_checker(client_id)
+            conversation_object = conversation_checker(pckt_header.ConvID)
 
             # send message to corresponding conversation (using corresponding reference returned from checker function)
-            conversation_object.receive_packet(string_data[4:])
-
-            #print(f"{client_address}, id {client_id}")
-            server_socket.sendto(b"ACKed", client_address) # here for now, will be in tcp functions later
+            conversation_object.receive_packet(data[20:])
 
 
 
