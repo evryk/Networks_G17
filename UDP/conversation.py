@@ -7,6 +7,7 @@ class conversation:
     def __init__(self, own_id):
         # Save the client ID
         self.conversation_id = own_id
+        self.handshake_completed = False
         print(f"Conversation {self.conversation_id} created.")
 
         # This is where new packets arrive in the conversation
@@ -32,8 +33,11 @@ class conversation:
     # This main loop is running on the object's own thread
     def main_loop(self):
         # Check for new messages
+
+        #self.handshake()
+
         while (1):
-            #time.sleep(1)
+            time.sleep(1)
 
             with self.buffer_lock:
                 if len(self.buffer) > 0:
@@ -45,18 +49,26 @@ class conversation:
 
     # TCP-like functions will be defined here
 
-    def handshake(self, own_id):
-        self.conversation_id = own_id
-        print(f"Handshake initiated with {self.conversation_id}")
-        time.sleep(1)
-        print("SYN")
-        time.sleep(1)
-        print("SYN-ACK")
-        time.sleep(1)
-        print("ACK")
-        print("Handshake completed")
+    def handshake(self):
+        
+        #time.sleep(1)
+        #print(f"Handshake initiated with {self.conversation_id}")
+        #print("SYN")
+        #time.sleep(1)
+        #print("SYN-ACK")
+        #time.sleep(1)
+        #print("ACK")
+        #print("Handshake completed")
+        #self.handshake_completed = True
+        pass
 
-    #conv = conversation(1)
+    def send_message(self, message):
+        if not self.handshake_completed:
+            print("Handshake not completed yet. Cannot send message.")
+            return
+        # Simulate sending message
+        print(f"Message sent from {self.conversation_id}: {message}")
+        pass
 
     def selective_repeat():
         pass
