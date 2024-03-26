@@ -7,7 +7,7 @@ class conversation:
     def __init__(self, own_id):
         # Save the client ID
         self.conversation_id = own_id
-        self.handshake_completed = False
+        # self.handshake_completed = False
         print(f"Conversation {self.conversation_id} created.")
 
         # This is where new packets arrive in the conversation
