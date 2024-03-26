@@ -1,6 +1,5 @@
 import socket
 import random
-import time
 
 def start_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Internet, UDP
