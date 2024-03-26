@@ -28,7 +28,7 @@ class HelloPacket(Enum):
 
 @dataclass
 class PcktHello:
-    Header: DataHeader  # 8 bytes
+    Header: DataHeader  # 10 bytes
     Version: int  # 4 bytes
     NumFeatures: int  # 2 bytes
     Feature: List[int]  # num_features*2 bytes
@@ -45,7 +45,7 @@ class Response(Enum):
 
 @dataclass
 class PcktVoteRequest:
-    Header: DataHeader  # 8 bytes
+    Header: DataHeader  # 10 bytes
     VoteID: uuid.UUID  # 16 bytes # uuid.uuid4() # str(uuid.uuid4()) # uuid.uuid4().hex
     QuestionLength: int  # 4 bytes
     Question: str  # QuestionLength bytes long
@@ -54,13 +54,12 @@ PcktVoteBroadcast = PcktVoteRequest
 
 @dataclass
 class PcktVoteResponse:
-    Header: DataHeader  # 8 bytes
+    Header: DataHeader  # 10 bytes
     VoteID: uuid.UUID  # 16 bytes
     Response: Response  # 2 bytes
 
 PcktVoteResultBroadcast = PcktVoteResponse
 
-#How can I iterate through a byte array, and extract certain bytes to decode and assign to each parameter in my classes? How do I encode these parameters back into bytes?
 
 def encode_dataHeader(header):
     return struct.pack('!IIH', header.Magic, header.Checksum, header.PcktID.value)
@@ -73,8 +72,8 @@ def decode_dataHeader(data):
 # PcktHello
 def encode_Hello(packet):
     header = encode_dataHeader(packet.Header)
-    features = b''.join(struct.pack('!H', feature) for feature in packet.Feature)
-    return struct.pack('!10sIH' + 'H'*len(features), header, packet.Version, packet.NumFeatures, *features)
+    # Convert the list of features into bytes directly in the struct.pack call
+    return struct.pack('!10sIH' + 'H'*packet.NumFeatures, header, packet.Version, packet.NumFeatures, *packet.Feature)
 
 def decode_Hello(data):
     header = decode_dataHeader(data[:10])
@@ -86,8 +85,8 @@ def decode_Hello(data):
 # PcktHelloResponse
 def encode_HelloResponse(packet):
     header = encode_dataHeader(packet.Header)
-    features = b''.join(struct.pack('!H', feature) for feature in packet.Feature)
-    return struct.pack('!10sIH' + 'H'*len(features), header, packet.Version, packet.NumFeatures, *features)
+    # Convert the list of features into bytes directly in the struct.pack call
+    return struct.pack('!10sIH' + 'H'*packet.NumFeatures, header, packet.Version, packet.NumFeatures, *packet.Feature)
 
 def decode_HelloResponse(data):
     header = decode_dataHeader(data[:10])
@@ -95,4 +94,67 @@ def decode_HelloResponse(data):
     features = [struct.unpack('!H', data[i:i+2])[0] for i in range(16, 16 + 2*num_features, 2)]
     return PcktHelloResponse(Header=header, Version=version, NumFeatures=num_features, Feature=features)
 
-# 
+
+# PcktVoteRequest
+def encode_VoteRequest(packet):
+    header = encode_dataHeader(packet.Header)
+    vote_id = packet.VoteID.bytes # Encode the VoteID as bytes
+    question_length = struct.pack('!I', packet.QuestionLength)
+    question = packet.Question.encode('utf-8') # Encode the Question as bytes
+    # Concatenate all the parts together:
+    return header + vote_id + question_length + question 
+
+def decode_VoteRequest(data):
+    header = decode_dataHeader(data[:10])
+    vote_id = uuid.UUID(bytes=data[10:26])
+    question_length = struct.unpack('!I', data[26:30])
+    question = data[30:30+question_length].decode('utf-8')
+    return PcktVoteRequest(Header=header, VoteID=vote_id, QuestionLength=question_length, Question=question)
+
+
+# PcktVoteBroadcast
+def encode_VoteBroadcast(packet):
+    header = encode_dataHeader(packet.Header)
+    vote_id = packet.VoteID.bytes
+    question_length = struct.pack('!I', packet.QuestionLength)
+    question = packet.Question.encode('utf-8')
+    return header + vote_id + question_length + question 
+
+def decode_VoteBroadcast(data):
+    header = decode_dataHeader(data[:10])
+    vote_id = uuid.UUID(bytes=data[10:26])
+    question_length = struct.unpack('!I', data[26:30])
+    question = data[30:30+question_length].decode('utf-8')
+    return PcktVoteBroadcast(Header=header, VoteID=vote_id, QuestionLength=question_length, Question=question)
+
+
+# PcktVoteResponse
+def encode_VoteResponse(packet):
+    header = encode_dataHeader(packet.Header)
+    vote_id = packet.VoteID.bytes
+    response = struct.pack('!H', packet.Response.value) # 2 bytes
+    # Concatenate all the parts together
+    return header + vote_id + response
+
+def decode_VoteResponse(data):
+    header = decode_dataHeader(data[:10])
+    vote_id = uuid.UUID(bytes=data[10:26])
+    response = Response(struct.unpack('!H', data[26:28]))
+    # Return a new PcktVoteResponse object
+    return PcktVoteResponse(Header=header, VoteID=vote_id, Response=response)
+
+
+# PcktVoteResultBroadcast
+def encode_ResultBroadcast(packet):
+    header = encode_dataHeader(packet.Header)
+    vote_id = packet.VoteID.bytes
+    response = struct.pack('!H', packet.Response.value)
+    # Concatenate all the parts together
+    return header + vote_id + response
+
+def decode_ResultBroadcast(data):
+    header = decode_dataHeader(data[:10])
+    vote_id = uuid.UUID(bytes=data[10:26])
+    response = Response(struct.unpack('!H', data[26:28]))
+    # Return a new PcktVoteResultBroadcast object
+    return PcktVoteResultBroadcast(Header=header, VoteID=vote_id, Response=response)
