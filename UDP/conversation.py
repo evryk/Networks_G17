@@ -7,7 +7,7 @@ class conversation:
     def __init__(self, own_id):
         # Save the client ID
         self.conversation_id = own_id
-        self.handshake_completed = False
+        # self.handshake_completed = False
         print(f"Conversation {self.conversation_id} created.")
 
         # This is where new packets arrive in the conversation
@@ -50,16 +50,6 @@ class conversation:
     # TCP-like functions will be defined here
 
     def handshake(self):
-        
-        #time.sleep(1)
-        #print(f"Handshake initiated with {self.conversation_id}")
-        #print("SYN")
-        #time.sleep(1)
-        #print("SYN-ACK")
-        #time.sleep(1)
-        #print("ACK")
-        #print("Handshake completed")
-        #self.handshake_completed = True
         pass
 
     def send_message(self, message):
