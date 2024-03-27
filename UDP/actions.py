@@ -2,15 +2,43 @@
 import consensus
 from enum import Enum
 import uuid
+import packet
 
 # Defing SYN function for Client to server.
 def SYN_send():
-    pass
+    #SYN packet to be sent to the server 
+    syn_packet = consensus.PcktHello(
+        Header = packet.DataHeader(MAGIC=packet.MAGIC, Checksum=0, PcktID=consensus.PcktID.hello_c2s),
+        Version = 1,
+        NumFeatures = 0,
+        Feature = []
+    )
 
+    #Encode the packet to be sent to the server 
+    syn_packet_data = consensus.encode_Hello(syn_packet)
+    print("SYN sent")
+    return syn_packet_data
+    pass
 # Defining SYN_ACK function for Server to Client
-def SYN_ACK():
-    pass
+def SYN_ACK(syn_packet_data):
+    
+    syn_packet_decoded = consensus.decode_Hello(syn_packet_data)
 
+    if syn_packet_decoded.Header.Magic == b'SYN':
+        print("SYN recieved")
+        syn_packet_decoded = consensus.PcktHelloResponse(
+            Header = packet.DataHeader(MAGIC=packet.MAGIC, Checksum=0, PcktID=consensus.PcktID.hello_back_s2c),
+            Version = 1,
+            NumFeatures = 0,
+            Feature = []
+        )
+        syn_ack_encoded = consensus.decode_HelloResponse(syn_packet_decoded)
+
+        return syn_ack_encoded
+    else:
+        print("Unexpected response, handshake failed")
+        return None
+    pass
 # Defining Vote Request Packet - initial question client to server
 def VoteRequest(question, Enum): #Header possibly or conversation ID
 
