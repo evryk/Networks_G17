@@ -1,22 +1,45 @@
 import socket
-import random
+from rdt import rdt_send
+from rdt import rdt_receive
+from rdt import PacketType
+# 1. (optional) get hostname of client using socket.gethostname()
+# 2. Create socket object using socket.socket() module
+# 3. Connect to local host by passing port number and hostname of server
+# 4. Send and receive message from the server using send() and recv()
+# 5. Close the connection with server
 
-def start_client():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Internet, UDP
-    server_address = ("localhost", 8080) # IP, port
+def client():
 
-    # create unique conversation ID
-    id = random.randint(1000, 9999)
+    host = socket.gethostname()
 
-    while True:
-        # send ID and message
-        message = str(id) + input("Your message: ")
-        client_socket.sendto(message.encode(), server_address)
-        
-        # receive ACK
-        response, _ = client_socket.recvfrom(4096) # recvfrom returns data and address (address not necessary)
-        print(response.decode())
+    port = 51664
+    
+    address = (host, port)
+
+    convid = 1
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    #message = input("Enter your message (Type 'exit' to exit): ")
+    message = ""
+
+    while message.lower().strip() != "exit":
+
+        message = input("Enter your message (Type 'exit' to exit): ")
+
+        works = rdt_send(message, client_socket, address, convid, PacketType.Data)
+
+        #client_socket.sendto(sndpkt, (host, port))
+
+        #rcvpkt, server_address = client_socket.recvfrom(256)
+
+        #data, address = rdt_receive(client_socket, convid)
+
+        #print(f"Received from server: {data}")
+
 
     client_socket.close()
 
-start_client()
+
+if __name__ == "__main__":
+    client()
