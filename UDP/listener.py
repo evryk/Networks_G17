@@ -15,7 +15,7 @@ def listener(server_socket):
             # Extract Packet Header
             pckt_header = packet.decode_header(data[:20])
 
-            # check client ID against list of ongoing conversations (here this will call a checker function,
+            # check convID against list of ongoing conversations (here this will call a checker function,
             # that returns a pointer or reference to a pre-existing or new conversation object)
             conversation_object = conversation_checker(pckt_header.ConvID)
 
@@ -29,7 +29,6 @@ def conversation_checker(client_id):
     object_reference = conversation_objects.get(client_id)
 
     if object_reference is not None:
-        #print(f"Found pre-existing conversation {object_reference.conversation_id}")
         return object_reference
     else:
         # Create a new conversation object
