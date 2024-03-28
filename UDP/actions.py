@@ -32,15 +32,11 @@ class VoteManager:
 
         if syn_packet_decoded.ID == 0:
             print("SYN recieved")
-            syn_packet_decoded = consensus.PcktHelloResponse(
-            #   Header = packet.DataHeader(MAGIC=packet.MAGIC, Checksum=0, PcktID=consensus.PcktID.hello_back_s2c),
-                ID = 1,
-                Version = 1,
-                NumFeatures = 0,
-                Feature = []
-            )
+            syn_packet_decoded.ID = consensus.PcktID.hello_back_s2c,
+            syn_packet_decoded.Version = 1,
+            syn_packet_decoded.NumFeatures = 0,
+            syn_packet_decoded.Feature = []
             syn_ack_encoded = consensus.decode_HelloResponse(syn_packet_decoded)
-
             return syn_ack_encoded
         else:
             print("Unexpected response, handshake failed")
@@ -53,7 +49,7 @@ class VoteManager:
 
         #Assuming Question is already defined as a string 
         vote_request = consensus.PcktVoteRequest(
-            # Header = "Actual Header", # This will be the header which the client sends, obviously not what is in the brackets 
+                ID = consensus.PcktID.vote_c2s_request_vote , 
                 VoteID = str(uuid.uuid4()), # Generating a UUID for vote identification
                 QuestionLength=len(question), # Question string length 
                 Question = question # Actual question
@@ -75,8 +71,8 @@ class VoteManager:
         vote_request = consensus.decode_VoteRequest(encoded_question) # Decode the message so that we can confirm if it has been transferred correctly.
 
         # Print the parameters of question. 
-        print("Received vote request for question: ", vote_request.Question)
-        print("Vote ID and question length: ", vote_request.VoteID, vote_request.QuestionLength)
+        print(f"Received vote request for question: ", vote_request.Question)
+        print(f"Vote ID and question length: ", vote_request.VoteID, vote_request.QuestionLength)
         
         # Encode the question to be sent to the clients 
         encoded_broadcast = consensus.encode_VoteBroadcast(vote_request)
@@ -90,17 +86,30 @@ class VoteManager:
 
         #Decode the question that has just been broadcasted 
         vote_response = consensus.decode_VoteBroadcast(encoded_broadcast)
-        
-        #Use Z3 to calculate the correct answer, the correct answer will then be decoded and returned by the function. 
-        pass
+        answer = eval(vote_response.Question)
+
+        vote_response_packet = consensus.PcktVoteResponse(
+            ID = consensus.PcktID.vote_c2s_response_to_question,
+            VoteID = vote_response.VoteID,
+            Response = answer # This may need to be the enumerator for the response class, but it will probably change because not using Z3
+        )
+
+        answer_encoded = consensus.encode_VoteResponse(vote_response_packet)
+
+        return answer_encoded
 
     # Defining Vote Result Broadcast Packet - server to all client nodes
     def ResultBroadcast(encoded_response):
 
-        number = consensus.PcktID(Enum) # vote_c2s_request_vote = 4 , number which will be called upon from the PcktID(Enum)
-
+        # number = consensus.PcktID(Enum) # vote_c2s_request_vote = 4 , number which will be called upon from the PcktID(Enum)
+        broadcast_answer = consensus.PcktVoteResultBroadcast
+        broadcast_answer = consensus.decode_VoteResponse
+        
+        print(f"Response to question: ", broadcast_answer.Response) 
         # Decode result and could possibly print maybe, message will be send back to original client based on correct answer. 
         
-        pass
+        encoded_broadcast = consensus.encode_ResultBroadcast(broadcast_answer)
+        return encoded_broadcast
+        
 
 
