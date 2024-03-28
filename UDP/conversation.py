@@ -77,4 +77,5 @@ class conversation:
         pass
 
     def fragmentator():
+        pass
 
