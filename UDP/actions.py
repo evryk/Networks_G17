@@ -49,7 +49,7 @@ def VoteRequest(question): #Header possibly or conversation ID
     #Assuming Question is already defined as a string 
     vote_request = consensus.PcktVoteRequest(
            # Header = "Actual Header", # This will be the header which the client sends, obviously not what is in the brackets 
-            VoteID = uuid.uuid4(), # Generating a UUID for vote identification
+            VoteID = str(uuid.uuid4()), # Generating a UUID for vote identification
             QuestionLength=len(question), # Question string length 
             Question = question # Actual question
         )
