@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-import packet
+# import packet
 import sys
 from command_line_interface import commandlineinterface
 
@@ -23,7 +23,7 @@ class conversation:
         self.thread_reference.start()
 
         # New code for command line interface
-       #  self.cli = commandlineinterface()
+        # self.cli = commandlineinterface()
         
     def __del__(self):
         # Kill Thread
@@ -34,7 +34,7 @@ class conversation:
         with self.buffer_lock:
             self.buffer.append(packet)
             # More command line interface.
-            self.cli.help_command()
+            # self.cli.help_command()
 
 
     # This main loop is running on the object's own thread
