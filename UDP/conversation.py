@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-# import packet
+import packet
 import sys
 from command_line_interface import commandlineinterface
 
