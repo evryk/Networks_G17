@@ -1,38 +1,50 @@
-import socket
-import threading
+import globals
 from conversation import conversation
-import time
 import packet
+import zlib
 
-# This is a Dictionary of all the current objects,
-# where each Object's Key in the dictionary is the conversation's ID
-conversation_objects = {}
 
-def listener(server_socket):
+def listener():
     while True:
-        data, client_address = server_socket.recvfrom(4096)
+        data, client_address = globals.own_socket.recvfrom(4096)
         if data:
             # Extract Packet Header
             pckt_header = packet.decode_header(data[:20])
 
-            # check client ID against list of ongoing conversations (here this will call a checker function,
+            # Check Magic
+            if pckt_header.Magic != globals.MAGIC:
+                # Drop the packet, corruption in Magic field detected
+                continue
+
+            # Generate Checksum and compare
+            if pckt_header.Checksum != zlib.crc32(data[8:]):
+                # Drop the packet, corruption in Checksum field detected
+                continue
+
+            # check convID against list of ongoing conversations (here this will call a checker function,
             # that returns a pointer or reference to a pre-existing or new conversation object)
             conversation_object = conversation_checker(pckt_header.ConvID)
 
+            # Make sure conversation_object is not an empty reference
+            if conversation_object == None:
+                continue
+
+            # Save client_address to conversation object, for sending purposes
+            conversation_object.updateIP(client_address)
+
             # send message to corresponding conversation (using corresponding reference returned from checker function)
-            conversation_object.receive_packet(data[20:])
+            conversation_object.receive_packet(data)
 
 
 
 def conversation_checker(client_id):
     # Check if conversation already exists
-    object_reference = conversation_objects.get(client_id)
+    object_reference = globals.conversation_objects.get(client_id)
 
     if object_reference is not None:
-        #print(f"Found pre-existing conversation {object_reference.conversation_id}")
         return object_reference
     else:
         # Create a new conversation object
         object_reference = conversation(client_id)
-        conversation_objects[client_id] = object_reference
+        globals.conversation_objects[client_id] = object_reference
         return object_reference
