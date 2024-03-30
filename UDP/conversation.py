@@ -22,6 +22,7 @@ class conversation:
         self.thread_reference = threading.Thread(target=self.main_loop, args=( ))
         self.thread_reference.start()
 
+        # New code for command line interface
         self.cli = commandlineinterface()
         
     def __del__(self):
@@ -32,7 +33,7 @@ class conversation:
         # Mutex Lock to append packet to the buffer
         with self.buffer_lock:
             self.buffer.append(packet)
-
+            # More command line interface.
             self.cli.help_command()
 
 
