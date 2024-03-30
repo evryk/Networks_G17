@@ -23,7 +23,7 @@ class conversation:
         self.thread_reference.start()
 
         # New code for command line interface
-        self.cli = commandlineinterface()
+       #  self.cli = commandlineinterface()
         
     def __del__(self):
         # Kill Thread
