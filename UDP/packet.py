@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List
 import struct
-
-MAGIC = 0x01051117
 
 class PacketType(Enum):
     Data = 0
@@ -22,7 +19,7 @@ class PcktHeader:
 @dataclass
 class Pckt:
     Header: PcktHeader  # 20 bytes
-    Body: List[int]  # N bytes
+    Body: bytes  # N bytes
     # 20 + N <= 256 Bytes
 
 
@@ -35,7 +32,7 @@ def decode_header(header_bytes):
 # Unpack whole packet including the body
 def decode_packet(packet_bytes):
     header = decode_header(packet_bytes[:20])
-    body = list(packet_bytes[20:])
+    body = packet_bytes[20:]
     return Pckt(header, body)
 
 
@@ -46,5 +43,5 @@ def encode_header(header: PcktHeader):
 # Pack whole packet including the body
 def encode_packet(packet: Pckt):
     header_bytes = encode_header(packet.Header)
-    body_bytes = bytes(packet.Body)
+    body_bytes = packet.Body
     return header_bytes + body_bytes

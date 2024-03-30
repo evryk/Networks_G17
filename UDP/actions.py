@@ -4,9 +4,26 @@ from enum import Enum
 import uuid
 import packet
 
+class Vote:
+    def __init__(self):
+        # Vote credentials
+
+        # 
+
+        # Dictionary of people who have voted
+
+
+        # Dictionary of results
+
+
+        pass
 
 class VoteManager:
     def __init__(self):
+        # Dictionary for votes I'm hosting
+
+        # Dictionary for votes I'm taking part in
+
         pass
 
     # Defing SYN function for Client to server.
