@@ -2,6 +2,8 @@ import socket
 import threading
 import time
 import packet
+import sys
+from command_line_interface import commandlineinterface
 
 class conversation:
     def __init__(self, own_id):
@@ -19,6 +21,8 @@ class conversation:
         # Start main loop thread
         self.thread_reference = threading.Thread(target=self.main_loop, args=( ))
         self.thread_reference.start()
+
+        self.cli = commandlineinterface()
         
     def __del__(self):
         # Kill Thread
@@ -28,6 +32,8 @@ class conversation:
         # Mutex Lock to append packet to the buffer
         with self.buffer_lock:
             self.buffer.append(packet)
+
+            self.cli.help_command()
 
 
     # This main loop is running on the object's own thread
