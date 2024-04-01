@@ -12,7 +12,7 @@ def start_server():
     print("Server is listening on port 8080")
 
     # create unique conversation ID
-    globals.own_conv_id = random.randint(1000, 9999)
+    globals.own_conv_id = globals.generate_convID()
     print(f"My ConvID is {globals.own_conv_id}\n")
 
     # create single listener thread

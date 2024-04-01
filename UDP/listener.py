@@ -2,6 +2,7 @@ import globals
 from conversation import conversation
 import packet
 import zlib
+import struct
 
 
 def listener():
@@ -19,6 +20,30 @@ def listener():
             # Generate Checksum and compare
             if pckt_header.Checksum != zlib.crc32(data[8:]):
                 # Drop the packet, corruption in Checksum field detected
+                continue
+
+            # IS THIS A PING REQUEST?
+            if pckt_header.Type == packet.PacketType.PING_REQ:
+                PingResPckt = packet.Pckt(
+                    Header=packet.PcktHeader(
+                        Magic = globals.MAGIC,
+                        Checksum = 0,
+                        ConvID = globals.generate_convID(),
+                        SequenceNum = 0,
+                        Final = True,
+                        Type = packet.PacketType.PING_RES
+                    ),
+                    Body=bytes()
+                )
+
+                PingResPckt_bytes = bytearray(packet.encode_packet(PingResPckt))
+                PingResPckt_bytes[4:8] = struct.pack('!I', zlib.crc32(PingResPckt_bytes[8:]))
+                globals.own_socket.sendto(bytes(PingResPckt_bytes), client_address)
+                continue
+
+            # Get unique Conversation ID allocated by Server to Client
+            if pckt_header.Type == packet.PacketType.PING_RES:
+                globals.own_conv_id = pckt_header.ConvID
                 continue
 
             # check convID against list of ongoing conversations (here this will call a checker function,
