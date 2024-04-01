@@ -9,6 +9,10 @@ from listener import listener
 import consensus
 import struct
 import zlib
+import sys
+# Import the command line interface
+
+from command_line_interface import commandlineinterface
 
 def start_client():
     server_address = ("localhost", 8080) # IP, port
@@ -43,6 +47,13 @@ def start_client():
             )
         )
     )
+
+    # Command line interface example
+    cli = commandlineinterface()
+    cli.run()
+    # Returns the question which the person has asked, we could return the packet here or could manipulate this question in order to be a part of the packet.
+    question = cli.question
+    print(F"Question is ", question)
 
     temp = bytearray(packet.encode_packet(hello))
     
