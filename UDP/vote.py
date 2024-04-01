@@ -71,7 +71,7 @@ class VoteManager:
             self.voted_for[pckt.VoteID] = ans
 
             # Send Response to server
-            #receivedFrom.send_VoteResponse(pckt.VoteID, pckt.Question, ans)
+            #receivedFrom.send_VoteResponse(pckt.VoteID, ans)
     
 
     # Server received PcktVoteResponse
@@ -92,7 +92,7 @@ class VoteManager:
 
                 # Broadcast Consensus Response to all nodes participating
                 for conv in globals.conversation_objects:
-                    #conv.send_BroadcastResult(pckt.VoteID, pckt.Question, result)
+                    #conv.send_BroadcastResult(pckt.VoteID, result)
                     pass
     
     

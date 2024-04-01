@@ -219,7 +219,7 @@ class conversation:
             self.largestSeqNum += 1
 
     
-    def send_VoteRequest(self):
+    def send_VoteRequest(self, voteID):
         with self.sr_function_lock:
 
           # Create VoteRequest Packet
@@ -229,15 +229,15 @@ class conversation:
                   Checksum = 0,
                   ConvID = globals.own_conv_id,
                   SequenceNum = self.largestSeqNum,
-                  Final = False, # this might be incorrect, depends on fragmentation
+                  Final = True, # this might be incorrect, depends on fragmentation
                   Type = packet.PacketType.Data
               ),
               Body = consensus.encode_VoteRequest(
                   consensus.PcktVoteRequest(
                       ID = consensus.PcktID.vote_c2s_request_vote,
-                      VoteID = consensus.uuid.UUID(), # this might be incorrect
-                      QuestionLength = 9,# consensus.QuestionLength
-                      Question = "dummy var" # consensus.Question
+                      VoteID = voteID, # this might be incorrect
+                      QuestionLength = 0,# consensus.QuestionLength
+                      Question = "" # consensus.Question
                   )
               )
           )
@@ -245,7 +245,7 @@ class conversation:
           self.sliding_window[self.largestSeqNum] = vote_request_packet
           self.largestSeqNum += 1 # this may be incorrect 
 
-    def send_VoteResponse(self):
+    def send_VoteResponse(self, voteID, response):
         with self.sr_function_lock:
             vote_response_packet = packet.Pckt(
                 Header = packet.PcktHeader(
@@ -259,8 +259,8 @@ class conversation:
                 Body = consensus.encode_VoteResponse(
                     consensus.PcktVoteResponse(
                         ID = consensus.PcktID.vote_c2s_response_to_question,
-                        VoteID = consensus.uuid.UUID(),
-                        Response = 0 # dummy var
+                        VoteID = voteID,
+                        Response = response 
                     )
                 )
             )
@@ -268,6 +268,54 @@ class conversation:
             self.sliding_window[self.largestSeqNum] = vote_response_packet
             self.largestSeqNum += 1 # this may be incorrect
 
+
+    def send_VoteBroadcast(self, voteID, question):
+        with self.sr_function_lock:
+            vote_broadcast_packet = packet.Pckt(
+                Header = packet.PcktHeader(
+                    Magic = globals.Magic,
+                    Checksum = 0,
+                    ConvID = globals.own_conv_id,
+                    SequenceNum = self.largestSeqNum,
+                    Final = True,
+                    Type = packet.PacketType.Data
+                ),
+                Body = consensus.encode_VoteBroadcast(
+                    conensus.PcktVoteBroadcast(
+                        ID = consensus.PcktID.vote_s2c_broadcast_question,
+                        VoteID = voteID,
+                        QuestionLength = len(question),
+                        Question = question
+                    )
+                )
+            )
+
+            self.sliding_window[self.largestSeqNum] = vote_broadcast_packet
+            self.largestSeqNum += 1
+
+    
+    def send_BroadcastResult(self, voteID, result):
+        with self.sr_function_lock:
+            vote_result_packet = packet.Pckt(
+                Header = packet.PcktHeader(
+                    Magic = globals.Magic,
+                    Checksum = 0,
+                    ConvID = globals.own_conv_id,
+                    SequenceNum = self.largestSeqNum,
+                    Final = True,
+                    Type = packet.PacketType.Data
+                ),
+                Body = consensus.encode_ResultBroadcast(
+                    consensus.PcktVoteResultBroadcast(
+                        ID = consensus.PcktID.vote_s2c_broadcast_result,
+                        VoteID = voteID,
+                        Response = result
+                    )
+                )
+            )
+
+            self.sliding_window[self.largestSeqNum] = vote_result_packet
+            self.largestSeqNum += 1
     
     def send_packet(self, Pckt: packet.Pckt):
         # Encode packet into bytearray
