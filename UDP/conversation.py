@@ -120,6 +120,12 @@ class conversation:
                 with self.sending_lock:
                     # Resend missing packet
                     self.send_packet(self.sliding_window[Pckt.Header.SequenceNum])
+            
+            case packet.PacketType.SYN:
+                self.send_SYNACK()
+
+            case packet.PacketType.SYN_ACK:
+                print("Got SYN_ACK")
 
             case _:
                 pass
@@ -159,6 +165,42 @@ class conversation:
         )
         # Send ACK packet
         self.send_packet(nack_packet)    
+
+
+    def send_SYN(self):
+        # Create SYN packet
+        syn_packet = packet.Pckt(
+            Header = packet.PcktHeader(
+                Magic = globals.MAGIC,
+                Checksum = 0,
+                ConvID = globals.own_conv_id,
+                SequenceNum = 0,
+                Final = True,
+                Type = packet.PacketType.SYN
+            ),
+            # empty byte array
+            Body = bytearray()
+        )
+        # Send ACK packet
+        self.send_packet(syn_packet)
+
+
+    def send_SYNACK(self):
+        # Create SYN packet
+        syn_ack_packet = packet.Pckt(
+            Header = packet.PcktHeader(
+                Magic = globals.MAGIC,
+                Checksum = 0,
+                ConvID = globals.own_conv_id,
+                SequenceNum = 0,
+                Final = True,
+                Type = packet.PacketType.SYN_ACK
+            ),
+            # empty byte array
+            Body = bytearray()
+        )
+        # Send ACK packet
+        self.send_packet(syn_ack_packet)
 
 
     def send_HelloPckt(self):
