@@ -56,7 +56,7 @@ PcktVoteResultBroadcast = PcktVoteResponse
 # Decoding the PcktID has to be done separately, so we know which packet was sent
 # no point encoding the PcktID separately as the sender knows which packet to send
 def decode_pcktID(data: bytes) -> PcktID:
-    value, = struct.unpack('!H', data)
+    value, = struct.unpack('!H', data[:2])
     return PcktID(value)
 
 
