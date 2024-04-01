@@ -25,7 +25,7 @@ class commandlineinterface:
         # Placeholder for the packet to send accross to the server, this will be implemented in testing. 
         ###
 
-# Quitting the server 
+# Quitting the server, this will quit for the client.py file also
     def exit(self):
         print("Quitting the server...")
         sys.exit()
@@ -33,7 +33,7 @@ class commandlineinterface:
 # Running the operation, this will be called from the conversation file to run the programme. 
     def run(self):
             while True:
-                command = input("Enter a command (type 'Help' for command glossary): ")
+                command = input("Enter a command (type 'help' for command glossary): ")
                 if command.lower() == "quit":
                     self.exit()
                     break
@@ -47,6 +47,7 @@ class commandlineinterface:
                 else:
                     print("Invalid command. Type 'Help' for command glossary.")
 
+# Returning the conversation ID to the client.
     def returnID(self):
         print(f"Your conversation ID is: ", globals.own_conv_id)
         self.run()
