@@ -7,6 +7,7 @@ import zlib
 import struct
 import consensus
 import random
+from vote import VoteManager
 
 
 class conversation:
@@ -338,7 +339,40 @@ class conversation:
 
                             # Send HelloBack just for testing for now
                             for i in range(0, random.randint(1, 2)): self.send_HelloPckt()
+                        
+                        case consensus.PcktID.vote_c2s_request_vote:
+                            print(f"Got Request Vote Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
 
+                            # Server received VoteRequest Packet
+                            # Create New Vote through VoteManager, to broadcast to other nodes
+                            votePckt = consensus.decode_VoteRequest(self.buffer[0].Body)
+                            VoteManager.startVote(votePckt)
+                            
+
+                        case consensus.PcktID.vote_s2c_broadcast_question:
+                            print(f"Got Broadcast Question Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+
+                            # Client Node received Broadcast Question Packet
+                            # Respond to Question
+                            questionPckt = consensus.decode_VoteBroadcast(self.buffer[0].Body)
+                            VoteManager.respondToQuestion(self, questionPckt)
+
+
+                        case consensus.PcktID.vote_c2s_response_to_question:
+                            print(f"Got Response to Question Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+
+                            # Server received Response to Question Packet from all nodes -> calls VoteManager
+                            # Compute Consensus Response
+                            responsePckt = consensus.decode_VoteResponse(self.buffer[0].Body)
+                            VoteManager.computeResult(self.buffer[0].Header.ConvID, responsePckt)
+                            
+
+                        case consensus.PcktID.vote_s2c_broadcast_result:
+                            print(f"Got Broadcast Result Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+
+                            # Client Node received Broadcast Result Packet
+                            gotConsensus = consensus.decode_ResultBroadcast(self.buffer[0].Body)
+                            VoteManager.receivedResult(gotConsensus)
 
 
                     # Remove Packet from buffer as we are done with it
