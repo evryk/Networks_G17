@@ -3,11 +3,12 @@ import globals
 import consensus
 import conversation
 import statistics
+import uuid
 
 
 # Class for a specific Vote
 class Vote:
-    def __init__(self, vote_id, q):
+    def __init__(self, vote_id : uuid.UUID, q):
         # Vote credentials
         self.voteID = vote_id
 
@@ -45,8 +46,7 @@ class VoteManager:
 
             # Set up client nodes participating in Vote
             for conv in globals.conversation_objects:
-                #conv.send_VoteBroadcast(pckt.VoteID, pckt.Question)
-                pass
+                globals.conversation_objects[conv].send_VoteBroadcast(pckt.VoteID, pckt.Question)
 
 
     # Client received PcktVoteBroadcast
@@ -71,34 +71,33 @@ class VoteManager:
             self.voted_for[pckt.VoteID] = ans
 
             # Send Response to server
-            #receivedFrom.send_VoteResponse(pckt.VoteID, ans)
+            receivedFrom.send_VoteResponse(pckt.VoteID, ans)
     
 
     # Server received PcktVoteResponse
     def computeResult(self, convID, pckt : consensus.PcktVoteResponse):
         with self.my_votes_lock: 
             # Check for duplicates
-            dup = self.my_votes.responses.get(convID)
+            dup = self.my_votes[pckt.VoteID].responses.get(convID)
             if dup is not None:
                 return
             
             # Add response for each convID (key) to Vote Class
-            self.my_votes.responses[convID] = pckt.Response
+            self.my_votes[pckt.VoteID].responses[convID] = consensus.Response(pckt.Response)
 
             # Check if we gathered Responses from at least 60% of Clients
             if len(self.my_votes[pckt.VoteID].responses) >= 3/5 * len(globals.conversation_objects):
                 # Compute Result
-                result = statistics.multimode(self.my_votes[pckt.VoteID].responses)[0]
+                result = statistics.multimode(self.my_votes[pckt.VoteID].responses.values())[0]
 
                 # Broadcast Consensus Response to all nodes participating
                 for conv in globals.conversation_objects:
-                    #conv.send_BroadcastResult(pckt.VoteID, result)
-                    pass
+                    globals.conversation_objects[conv].send_BroadcastResult(pckt.VoteID, result)
     
     
     # Client got official result from server
     def receivedResult(self, pckt : consensus.PcktVoteResultBroadcast):
-        with self.voted_for_lock:
+        with self.voted_for_lock: 
             # Make sure we have voted for this
             if self.voted_for.get(pckt.VoteID) is not None:
                 # Check if consensus agrees with us

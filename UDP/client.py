@@ -1,22 +1,23 @@
-import socket
 import threading
-import random
 import globals
 import time
 import packet
-from conversation import conversation
 from listener import listener
-import consensus
 import struct
 import zlib
+import vote
 
 def start_client():
     server_address = ("localhost", 8080) # IP, port
 
-    # create single listener thread
+    # Create single listener thread
     listener_thread = threading.Thread(target=listener, args=( ))
     listener_thread.start()
 
+    # Initialize Vote Manager
+    globals.vote_manager_ref = vote.VoteManager()
+
+    # Send initial Ping Request to obtain unique ConvID
     if globals.own_conv_id == 0:
         PingPckt = packet.Pckt(
             Header=packet.PcktHeader(
@@ -31,17 +32,18 @@ def start_client():
         )
 
         PingPckt_bytes = bytearray(packet.encode_packet(PingPckt))
-
         PingPckt_bytes[4:8] = struct.pack('!I', zlib.crc32(PingPckt_bytes[8:]))
 
         while globals.own_conv_id == 0:
-            print("pinging")
             globals.own_socket.sendto(bytes(PingPckt_bytes), server_address)
             time.sleep(1)
 
 
+    # Obtained Conversation ID
     print(f"My ConvID is {globals.own_conv_id}\n")
 
+
+    # Send SYN packet to initialize conversation with server
     if len(globals.conversation_objects) == 0:
         synPckt = packet.Pckt(
             Header=packet.PcktHeader(
@@ -56,7 +58,6 @@ def start_client():
         )
 
         synPckt_bytes = bytearray(packet.encode_packet(synPckt))
-
         synPckt_bytes[4:8] = struct.pack('!I', zlib.crc32(synPckt_bytes[8:]))
 
         while len(globals.conversation_objects) == 0:

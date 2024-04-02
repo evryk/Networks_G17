@@ -1,9 +1,7 @@
-import socket
 import threading
 from listener import listener
-import time
 import globals
-import random
+import vote
 
 def start_server():
     server_address = ('localhost', 8080) # IP, port
@@ -18,6 +16,9 @@ def start_server():
     # create single listener thread
     listener_thread = threading.Thread(target=listener, args=( ))
     listener_thread.start()
+
+    # Initialize Vote Manager
+    globals.vote_manager_ref = vote.VoteManager()
 
 if __name__ == "__main__":
     start_server()
