@@ -72,7 +72,7 @@ def start_client():
 
     # Command line interface 
     cli = commandlineinterface()
-    cli.run()
+    cli.go_to_client()
 
     # Returns the question typed in by user
     question = cli.question

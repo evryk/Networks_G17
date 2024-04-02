@@ -59,6 +59,17 @@ class commandlineinterface:
     # def return_server_address(self):
     #     print(f"The server address is: ", globals.server_address)
     #     self.run()
+    def go_to_client(self):
+        self.display_welcome_once()
+        self.run()
+
+    def display_welcome_once(self):
+        print("  V    V  OOO   TTTTT  IIIII  N   N  GGGGG    SSSS  Y   Y  SSSS  TTTTT  EEEEE  M   M")
+        print("  V    V O   O    T      I    NN  N  G       S       Y  Y  S       T    E      MM MM")
+        print("  V    V O   O    T      I    N N N  G  GG    SSS      Y     SSS   T    EEE    M M M")
+        print("  VV  VV  O   O   T      I    N  NN  G   G      S     Y        S   T    E      M   M")
+        print("   VVVV    OOO    T    IIIII  N   N   GGGG  SSSS     Y     SSSS    T    EEEEE  M   M\n\n")                                                       
+        print("                        Welcome to the Voting System! \n\n")  
 
         
         

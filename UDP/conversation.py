@@ -14,7 +14,7 @@ class conversation:
     def __init__(self, own_id):
         # Save the client ID
         self.conversation_id = own_id
-        print(f"Conversation {self.conversation_id} created.")
+        print(f"Conversation {self.conversation_id} created.\n")
 
         # Save Client IP address and port
         self.client_address = ("", 0)
@@ -126,7 +126,7 @@ class conversation:
                 self.send_SYNACK()
                 
             case packet.PacketType.SYN_ACK:
-                print("Got SYN_ACK")
+                print("Got SYN_ACK \n")
                 # self.send_VoteRequest(uuid.uuid4(), "2+2=4")
 
             case _:
