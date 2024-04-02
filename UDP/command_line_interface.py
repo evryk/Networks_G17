@@ -2,14 +2,14 @@ import sys
 import globals
 # Command line interface for client to call and request votes.
 
-# Class containing the command line interfac, so that it can be called upon in the conversation file, this could be changed. 
+# Class containing the command line interface, so that it can be called upon in the conversation file, this could be changed. 
 class commandlineinterface:
     def __init__(self):
-        self.question = None
+        self.question = ""
 
 # Help command, so the user knows how to request votes etc        
     def help_command(self):
-        print("Command Golssary (Note: case sensitive):")
+        print("Command Glossary (Note: case sensitive):")
         print("-------------------------------------")
         print("If you wish to request a vote, type 'request vote' into the command and press enter.")
         print("If you wish to obtain your conversation ID, type 'id' into the command and press enter.")
@@ -46,8 +46,8 @@ class commandlineinterface:
                     self.help_command()
                 elif command.lower() == "id":
                     self.returnID()
-                elif command.lower() == "server address":
-                    self.return_server_address()
+                #elif command.lower() == "server address":
+                    #self.return_server_address()
                 else:
                     print("Invalid command. Type 'Help' for command glossary.")
 
@@ -56,9 +56,9 @@ class commandlineinterface:
         print(f"Your conversation ID is: ", globals.own_conv_id)
         self.run()
     
-    def return_server_address(self):
-        print(f"The server address is: ", globals.server_address)
-        self.run()
+    # def return_server_address(self):
+    #     print(f"The server address is: ", globals.server_address)
+    #     self.run()
 
         
         

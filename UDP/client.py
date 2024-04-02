@@ -7,12 +7,13 @@ import struct
 import zlib
 import vote
 import sys
+import uuid
 # Import the command line interface
 from command_line_interface import commandlineinterface
 
 def start_client():
-    # server_address = ("localhost", 8080) # IP, port
     server_address = ("localhost", 8080) # IP, port
+
     # Create single listener thread
     listener_thread = threading.Thread(target=listener, args=( ))
     listener_thread.start()
@@ -66,27 +67,21 @@ def start_client():
             globals.own_socket.sendto(bytes(synPckt_bytes), server_address)
             time.sleep(1)
 
+
     time.sleep(1)
-    # START CLI here
+
     # Command line interface 
     cli = commandlineinterface()
     cli.run()
-    # Returns the question which the person has asked, we could return the packet here or could manipulate this question in order to be a part of the packet.
+
+    # Returns the question typed in by user
     question = cli.question
     print(F"Your question is '", question, "', sending this to the server.")
-    # We will now initialize the handshake, the packet sending of the question is afterwards. This is simply an example of how the question would be encoded. 
-    if len(question) != 0:
-        question_packet = packet.Pckt(
-            Header = packet.PcktHeader(
-                Magic = globals.MAGIC,
-                Checksum = 0,
-                ConvID =globals.own_conv_id,
-                SequenceNum = 2, 
-                Final = True,
-                Type = packet.PacketType.Data
-            ),
-            Body = bytes(question, 'utf-8')
-        )
+
+    # Send Vote Request packet with our question 
+    if len(question) != 0 and len(globals.conversation_objects) == 1:
+        for conv in globals.conversation_objects:
+            globals.conversation_objects[conv].send_VoteRequest(uuid.uuid4(), question)
 
 start_client()
     
