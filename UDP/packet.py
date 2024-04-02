@@ -6,6 +6,11 @@ class PacketType(Enum):
     Data = 0
     ACK = 1
     NACK = 2
+    SYN = 3
+    SYN_ACK = 4
+    RESET = 5
+    PING_REQ = 0xFFFE
+    PING_RES = 0xFFFF
 
 @dataclass
 class PcktHeader:
