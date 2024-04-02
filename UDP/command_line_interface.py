@@ -13,6 +13,7 @@ class commandlineinterface:
         print("-------------------------------------")
         print("If you wish to request a vote, type 'request vote' into the command and press enter.")
         print("If you wish to obtain your conversation ID, type 'id' into the command and press enter.")
+        #  print("If you wish to return the Server Address, type 'server address' into the command and press enter.")
         print("If you wish to exit the server, type 'quit' into the command line")
         print("-------------------------------------")
         self.run()
@@ -21,7 +22,7 @@ class commandlineinterface:
     def request_vote(self):
         print("Going to request a vote from the server, type your question here and then press Enter:")
         self.question = input()
-        return
+        # return
         # Placeholder for the packet to send accross to the server, this will be implemented in testing. 
         ###
 
@@ -44,6 +45,8 @@ class commandlineinterface:
                     self.help_command()
                 elif command.lower() == "id":
                     self.returnID()
+                elif command.lower() == "server address":
+                    self.return_server_address()
                 else:
                     print("Invalid command. Type 'Help' for command glossary.")
 
@@ -51,5 +54,10 @@ class commandlineinterface:
     def returnID(self):
         print(f"Your conversation ID is: ", globals.own_conv_id)
         self.run()
+    
+    def return_server_address(self):
+        print(f"The server address is: ", globals.server_address)
+        self.run()
+
         
         

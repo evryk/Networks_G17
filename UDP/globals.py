@@ -15,7 +15,6 @@ conversation_objects = {}
 
 # Vote Manager reference
 vote_manager_ref: vote.VoteManager
-
 # Generate new conversation ID for client
 generatedIDs = {}
 
