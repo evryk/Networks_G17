@@ -127,7 +127,7 @@ class conversation:
                 
             case packet.PacketType.SYN_ACK:
                 print("Got SYN_ACK")
-                self.send_VoteRequest(uuid.uuid4(), "2+2=4")
+                # self.send_VoteRequest(uuid.uuid4(), "2+2=4")
 
             case _:
                 pass

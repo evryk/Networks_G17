@@ -45,26 +45,6 @@ def start_client():
     # Obtained Conversation ID
     print(f"My ConvID is {globals.own_conv_id}\n")
 
-    # Command line interface 
-    cli = commandlineinterface()
-    cli.run()
-    # Returns the question which the person has asked, we could return the packet here or could manipulate this question in order to be a part of the packet.
-    question = cli.question
-    print(F"Your question is '", question, "', sending this to the server, initializing handshake to begin.")
-    # We will now initialize the handshake, the packet sending of the question is afterwards. This is simply an example of how the question would be encoded. 
-    if len(question) != 0:
-        question_packet = packet.Pckt(
-            Header = packet.PcktHeader(
-                Magic = globals.MAGIC,
-                Checksum = 0,
-                ConvID =globals.own_conv_id,
-                SequenceNum = 2,
-                Final = True,
-                Type = packet.PacketType.Data
-            ),
-            Body = bytes(question, 'utf-8')
-        )
-
     # Send SYN packet to initialize conversation with server
     if len(globals.conversation_objects) == 0:
         synPckt = packet.Pckt(
@@ -86,9 +66,27 @@ def start_client():
             globals.own_socket.sendto(bytes(synPckt_bytes), server_address)
             time.sleep(1)
 
-    # time.sleep(1)
+    time.sleep(1)
     # START CLI here
     # Command line interface 
+    cli = commandlineinterface()
+    cli.run()
+    # Returns the question which the person has asked, we could return the packet here or could manipulate this question in order to be a part of the packet.
+    question = cli.question
+    print(F"Your question is '", question, "', sending this to the server.")
+    # We will now initialize the handshake, the packet sending of the question is afterwards. This is simply an example of how the question would be encoded. 
+    if len(question) != 0:
+        question_packet = packet.Pckt(
+            Header = packet.PcktHeader(
+                Magic = globals.MAGIC,
+                Checksum = 0,
+                ConvID =globals.own_conv_id,
+                SequenceNum = 2, 
+                Final = True,
+                Type = packet.PacketType.Data
+            ),
+            Body = bytes(question, 'utf-8')
+        )
 
 start_client()
     

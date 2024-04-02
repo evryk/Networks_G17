@@ -22,6 +22,7 @@ class commandlineinterface:
     def request_vote(self):
         print("Going to request a vote from the server, type your question here and then press Enter:")
         self.question = input()
+        # return self.question
         # return
         # Placeholder for the packet to send accross to the server, this will be implemented in testing. 
         ###
