@@ -4,7 +4,7 @@ import globals
 import vote
 
 def start_server():
-    server_address = ('localhost', 8080) # IP, port
+    server_address = ('0.0.0.0', 8080) # IP, port
     globals.own_socket.bind(server_address)
 
     print("\nServer is listening on port 8080\n")

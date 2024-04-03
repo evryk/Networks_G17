@@ -23,7 +23,7 @@ def listener():
                 continue
 
             # IS THIS A PING REQUEST?
-            if pckt_header.Type == packet.PacketType.PING_REQ:
+            if pckt_header.Type == packet.PacketType.PING_REQ or pckt_header.ConvID == 0:
                 PingResPckt = packet.Pckt(
                     Header=packet.PcktHeader(
                         Magic = globals.MAGIC,

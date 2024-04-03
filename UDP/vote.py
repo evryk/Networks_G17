@@ -59,17 +59,19 @@ class VoteManager:
                 return
             
             # Split Question at = sign
-            left, right = pckt.Question.split('=')
+            # left, right = pckt.Question.split('=')
 
-            # Compute Response for Question
-            if eval(left.strip()) == eval(right.strip()):
-                ans = 1 # True
-            else:
-                ans = 0 # False
-            # if (eval(pckt.Question.strip()) == True):
-            #     ans = 1
+            # # Compute Response for Question
+            # if eval(left.strip()) == eval(right.strip()):
+            #     ans = 1 # True
             # else:
-            #     ans = 0
+            #     ans = 0 # False
+            if (eval(pckt.Question.strip()) == True):
+                ans = 1
+            else:
+                ans = 0
+
+            #ans = eval(pckt.Question.strip())
 
             # Save Response in voted_for dictionary for given VoteID
             self.voted_for[pckt.VoteID] = ans

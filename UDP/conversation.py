@@ -452,7 +452,7 @@ class conversation:
                         return
                     else:
                         # It hasn't been sent so send it
-                        #print(f"Sending packet with Number: {PackNum}.\n")
+                        print(f"Sending packet with Number: {PackNum}.\n")
                         self.send_packet(self.sliding_window[PackNum])
                 else:
                     break
@@ -465,7 +465,7 @@ class conversation:
         # Check for new messages
         while (1):
 
-            time.sleep(0.5)
+            time.sleep(1)
 
             with self.buffer_lock:
                 if len(self.buffer) > 0:
