@@ -58,18 +58,18 @@ class VoteManager:
             if dup is not None:
                 return
             
-            # # Split Question at = sign
-            # left, right = pckt.Question.split('=')
+            # Split Question at = sign
+            left, right = pckt.Question.split('=')
 
-            # # Compute Response for Question
-            # if eval(left.strip()) == eval(right.strip()):
-            #     ans = consensus.Response.SAT
-            # else:
-            #     ans = consensus.Response.UNSAT
-            if (eval(pckt.Question.strip()) == True):
+            # Compute Response for Question
+            if eval(left.strip()) == eval(right.strip()):
                 ans = consensus.Response.SAT
             else:
                 ans = consensus.Response.UNSAT
+            # if (eval(pckt.Question.strip()) == True):
+            #     ans = consensus.Response.SAT
+            # else:
+            #     ans = consensus.Response.UNSAT
 
             # Save Response in voted_for dictionary for given VoteID
             self.voted_for[pckt.VoteID] = ans
