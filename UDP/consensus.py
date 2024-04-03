@@ -48,7 +48,7 @@ PcktVoteBroadcast = PcktVoteRequest
 class PcktVoteResponse:
     DataID: PcktID  # 2 bytes
     VoteID: uuid.UUID  # 16 bytes
-    Response: Response  # 2 bytes
+    Response: int  # 2 bytes
 
 PcktVoteResultBroadcast = PcktVoteResponse
 
@@ -121,7 +121,7 @@ def decode_VoteBroadcast(data : bytes):
 def encode_VoteResponse(packet : PcktVoteResponse):
     pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes
-    response = struct.pack('!H', packet.Response.value) # 2 bytes
+    response = struct.pack('!H', packet.Response)
     # Concatenate all the parts together
     return pckt_id + vote_id + response
 
@@ -130,14 +130,14 @@ def decode_VoteResponse(data : bytes):
     vote_id = uuid.UUID(bytes=data[2:18])
     response = struct.unpack('!H', data[18:20])[0]
     # Return a new PcktVoteResponse object
-    return PcktVoteResponse(DataID=pckt_id, VoteID=vote_id, Response=Response(response))
+    return PcktVoteResponse(DataID=pckt_id, VoteID=vote_id, Response=response)
 
 
 # PcktVoteResultBroadcast
 def encode_ResultBroadcast(packet : PcktVoteResultBroadcast):
     pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes
-    response = struct.pack('!H', packet.Response.value)
+    response = struct.pack('!H', packet.Response)
     # Concatenate all the parts together
     return pckt_id + vote_id + response
 
@@ -146,4 +146,4 @@ def decode_ResultBroadcast(data : bytes):
     vote_id = uuid.UUID(bytes=data[2:18])
     response = struct.unpack('!H', data[18:20])[0]
     # Return a new PcktVoteResultBroadcast object
-    return PcktVoteResultBroadcast(DataID=pckt_id, VoteID=vote_id, Response=Response(response))
+    return PcktVoteResultBroadcast(DataID=pckt_id, VoteID=vote_id, Response=response)

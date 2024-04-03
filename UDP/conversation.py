@@ -320,7 +320,7 @@ class conversation:
             self.largestPacketNum += 1
 
 
-    def send_VoteResponse(self, voteID : uuid.UUID, response : consensus.Response):
+    def send_VoteResponse(self, voteID : uuid.UUID, response : int):
         with self.sr_function_lock:
             vote_response_packet = packet.Pckt(
                 Header = packet.PcktHeader(
@@ -345,7 +345,7 @@ class conversation:
             self.largestPacketNum += 1
 
     
-    def send_BroadcastResult(self, voteID : uuid.UUID, result: consensus.Response):
+    def send_BroadcastResult(self, voteID : uuid.UUID, result : int):
         with self.sr_function_lock:
             vote_result_packet = packet.Pckt(
                 Header = packet.PcktHeader(

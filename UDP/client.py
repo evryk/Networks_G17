@@ -11,7 +11,7 @@ import vote
 from command_line_interface import commandlineinterface
 
 def start_client():
-    server_address = ("172.20.10.7", 8080) # IP, port
+    server_address = ("localhost", 8080) # IP, port
 
     # Create single listener thread
     listener_thread = threading.Thread(target=listener, args=( ))

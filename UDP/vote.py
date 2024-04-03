@@ -63,13 +63,13 @@ class VoteManager:
 
             # Compute Response for Question
             if eval(left.strip()) == eval(right.strip()):
-                ans = consensus.Response.SAT
+                ans = 1 # True
             else:
-                ans = consensus.Response.UNSAT
+                ans = 0 # False
             # if (eval(pckt.Question.strip()) == True):
-            #     ans = consensus.Response.SAT
+            #     ans = 1
             # else:
-            #     ans = consensus.Response.UNSAT
+            #     ans = 0
 
             # Save Response in voted_for dictionary for given VoteID
             self.voted_for[pckt.VoteID] = ans
@@ -88,12 +88,13 @@ class VoteManager:
                 return
             
             # Add response for each convID (key) to Vote Class
-            self.my_votes[pckt.VoteID].responses[convID] = consensus.Response(pckt.Response)
+            self.my_votes[pckt.VoteID].responses[convID] = pckt.Response
 
             # Check if we gathered Responses from at least 75% of Clients
             if len(self.my_votes[pckt.VoteID].responses) >= 3/4 * len(globals.conversation_objects):
                 # Compute Result
                 result = statistics.multimode(self.my_votes[pckt.VoteID].responses.values())[0]
+                print(f"VoteID: {pckt.VoteID} -> Result : {result}\n")
 
                 # Broadcast Consensus Response to all nodes participating
                 for conv in globals.conversation_objects:
