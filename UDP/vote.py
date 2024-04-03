@@ -58,12 +58,16 @@ class VoteManager:
             if dup is not None:
                 return
 
-            if (eval(pckt.Question.strip()) == True):
+            tmp = False
+            try:
+                tmp = eval(pckt.Question.strip())
+            except: 
+                print("Error with eval function")
+            if tmp == True:
                 ans = 1
-            elif (eval(pckt.Question.strip()) == False):
-                ans = 0
             else:
-                ans = 2
+                ans = 0
+
 
             # Save Response in voted_for dictionary for given VoteID
             self.voted_for[pckt.VoteID] = ans
