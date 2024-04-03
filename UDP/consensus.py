@@ -20,7 +20,7 @@ class HelloPacket(Enum):
 
 @dataclass
 class PcktHello:
-    ID: PcktID  # 2 bytes
+    DataID: PcktID  # 2 bytes
     Version: int  # 4 bytes
     NumFeatures: int  # 2 bytes
     Feature: List[int]  # num_features*2 bytes
@@ -37,8 +37,8 @@ class Response(Enum):
 
 @dataclass
 class PcktVoteRequest:
-    ID: PcktID  # 2 bytes
-    VoteID: uuid.UUID  # 16 bytes # uuid.uuid4() # str(uuid.uuid4()) # uuid.uuid4().hex
+    DataID: PcktID  # 2 bytes
+    VoteID: uuid.UUID  # 16 bytes
     QuestionLength: int  # 4 bytes
     Question: str  # QuestionLength bytes long
 
@@ -46,7 +46,7 @@ PcktVoteBroadcast = PcktVoteRequest
 
 @dataclass
 class PcktVoteResponse:
-    ID: PcktID  # 2 bytes
+    DataID: PcktID  # 2 bytes
     VoteID: uuid.UUID  # 16 bytes
     Response: Response  # 2 bytes
 
@@ -61,89 +61,89 @@ def decode_pcktID(data: bytes) -> PcktID:
 
 
 # PcktHello
-def encode_Hello(packet):
+def encode_Hello(packet : PcktHello):
     # Convert the list of features into bytes directly in the struct.pack call
-    return struct.pack('!HIH' + 'H'*packet.NumFeatures, packet.ID.value, packet.Version, packet.NumFeatures, *packet.Feature)
+    return struct.pack('!HIH' + 'H'*packet.NumFeatures, packet.DataID.value, packet.Version, packet.NumFeatures, *packet.Feature)
 
-def decode_Hello(data):
+def decode_Hello(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     version, num_features = struct.unpack('!IH', data[2:8])
     features = [struct.unpack('!H', data[i:i+2])[0] for i in range(8, 8 + 2*num_features, 2)]
-    return PcktHello(ID=pckt_id, Version=version, NumFeatures=num_features, Feature=features)
+    return PcktHello(DataID=pckt_id, Version=version, NumFeatures=num_features, Feature=features)
 
 
 # PcktHelloResponse
-def encode_HelloResponse(packet):
+def encode_HelloResponse(packet : PcktHelloResponse):
     # Convert the list of features into bytes directly in the struct.pack call
-    return struct.pack('!HIH' + 'H'*packet.NumFeatures, packet.ID.value, packet.Version, packet.NumFeatures, *packet.Feature)
+    return struct.pack('!HIH' + 'H'*packet.NumFeatures, packet.DataID.value, packet.Version, packet.NumFeatures, *packet.Feature)
 
-def decode_HelloResponse(data):
+def decode_HelloResponse(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     version, num_features = struct.unpack('!IH', data[2:8])
     features = [struct.unpack('!H', data[i:i+2])[0] for i in range(8, 8 + 2*num_features, 2)]
-    return PcktHelloResponse(ID=pckt_id, Version=version, NumFeatures=num_features, Feature=features)
+    return PcktHelloResponse(DataID=pckt_id, Version=version, NumFeatures=num_features, Feature=features)
 
 
 # PcktVoteRequest
-def encode_VoteRequest(packet):
-    pckt_id = struct.pack('!H', packet.ID.value)
+def encode_VoteRequest(packet : PcktVoteRequest):
+    pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes # Encode the VoteID as bytes
     question_length = struct.pack('!I', packet.QuestionLength)
     question = packet.Question.encode('utf-8') # Encode the Question as bytes
     # Concatenate all the parts together:
     return pckt_id + vote_id + question_length + question 
 
-def decode_VoteRequest(data):
+def decode_VoteRequest(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     vote_id = uuid.UUID(bytes=data[2:18])
     question_length, = struct.unpack('!I', data[18:22])
     question = data[22:22+question_length].decode('utf-8')
-    return PcktVoteRequest(ID=pckt_id, VoteID=vote_id, QuestionLength=question_length, Question=question)
+    return PcktVoteRequest(DataID=pckt_id, VoteID=vote_id, QuestionLength=question_length, Question=question)
 
 
 # PcktVoteBroadcast
-def encode_VoteBroadcast(packet):
-    pckt_id = struct.pack('!H', packet.ID.value)
+def encode_VoteBroadcast(packet : PcktVoteBroadcast):
+    pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes
     question_length = struct.pack('!I', packet.QuestionLength)
     question = packet.Question.encode('utf-8')
     return pckt_id + vote_id + question_length + question 
 
-def decode_VoteBroadcast(data):
+def decode_VoteBroadcast(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     vote_id = uuid.UUID(bytes=data[2:18])
     question_length, = struct.unpack('!I', data[18:22])
     question = data[22:22+question_length].decode('utf-8')
-    return PcktVoteBroadcast(ID=pckt_id, VoteID=vote_id, QuestionLength=question_length, Question=question)
+    return PcktVoteBroadcast(DataID=pckt_id, VoteID=vote_id, QuestionLength=question_length, Question=question)
 
 
 # PcktVoteResponse
-def encode_VoteResponse(packet):
-    pckt_id = struct.pack('!H', packet.ID.value)
+def encode_VoteResponse(packet : PcktVoteResponse):
+    pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes
     response = struct.pack('!H', packet.Response.value) # 2 bytes
     # Concatenate all the parts together
     return pckt_id + vote_id + response
 
-def decode_VoteResponse(data):
+def decode_VoteResponse(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     vote_id = uuid.UUID(bytes=data[2:18])
     response = struct.unpack('!H', data[18:20])[0]
     # Return a new PcktVoteResponse object
-    return PcktVoteResponse(ID=pckt_id, VoteID=vote_id, Response=Response(response))
+    return PcktVoteResponse(DataID=pckt_id, VoteID=vote_id, Response=Response(response))
 
 
 # PcktVoteResultBroadcast
-def encode_ResultBroadcast(packet):
-    pckt_id = struct.pack('!H', packet.ID.value)
+def encode_ResultBroadcast(packet : PcktVoteResultBroadcast):
+    pckt_id = struct.pack('!H', packet.DataID.value)
     vote_id = packet.VoteID.bytes
     response = struct.pack('!H', packet.Response.value)
     # Concatenate all the parts together
     return pckt_id + vote_id + response
 
-def decode_ResultBroadcast(data):
+def decode_ResultBroadcast(data : bytes):
     pckt_id = decode_pcktID(data[:2])
     vote_id = uuid.UUID(bytes=data[2:18])
     response = struct.unpack('!H', data[18:20])[0]
     # Return a new PcktVoteResultBroadcast object
-    return PcktVoteResultBroadcast(ID=pckt_id, VoteID=vote_id, Response=Response(response))
+    return PcktVoteResultBroadcast(DataID=pckt_id, VoteID=vote_id, Response=Response(response))
