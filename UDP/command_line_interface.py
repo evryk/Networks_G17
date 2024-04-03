@@ -3,6 +3,7 @@ import globals
 import uuid
 import time
 import threading
+import os
 
 # Command line interface for client to call and request votes.
 
@@ -47,7 +48,8 @@ class commandlineinterface:
     # Quitting the server, this will quit for the client.py file also
     def exit(self):
         print("\033[31m", "Quitting the server...")
-        sys.exit()
+        #sys.exit()
+        os._exit(0)
 
     # Running the operation, this will be called from the conversation file to run the programme. 
     def run(self):
