@@ -58,19 +58,16 @@ class VoteManager:
             if dup is not None:
                 return
 
-            tmp = False
+            # Temporary test variable
+            ans: int
             try:
-                tmp = eval(pckt.Question.strip())
+                ans = eval(pckt.Question.strip())
             except: 
                 print("Error with eval function")
-            if tmp == True:
-                ans = 1
-            else:
-                ans = 0
-
+                ans = 2 # Syntax Error
 
             # Save Response in voted_for dictionary for given VoteID
-            self.voted_for[pckt.VoteID] = ans
+            self.voted_for[pckt.VoteID] = int(ans)
             print(f"My response is: {ans}\n")
 
             # Send Response to server
@@ -79,6 +76,7 @@ class VoteManager:
 
     # Server received PcktVoteResponse
     def computeResult(self, convID, pckt : consensus.PcktVoteResponse):
+        
         with self.my_votes_lock: 
             # Check for duplicates
             dup = self.my_votes[pckt.VoteID].responses.get(convID)
@@ -101,6 +99,7 @@ class VoteManager:
     
     # Client got official result from server
     def receivedResult(self, pckt : consensus.PcktVoteResultBroadcast):
+        
         with self.voted_for_lock: 
             # Make sure we have voted for this
             if self.voted_for.get(pckt.VoteID) is not None:

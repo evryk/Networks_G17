@@ -1,6 +1,7 @@
 import socket
 import random
 import vote
+import conversation
 
 # Variables and Constants for Global use
 own_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -15,6 +16,10 @@ conversation_objects = {}
 
 # Vote Manager reference
 vote_manager_ref: vote.VoteManager
+
+# Conversations Manager reference
+conv_manager: conversation.conversations_manager
+
 # Generate new conversation ID for client
 generatedIDs = {}
 

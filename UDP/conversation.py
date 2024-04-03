@@ -10,6 +10,28 @@ import random
 import uuid
 
 
+class conversations_manager:
+    def __init__(self):
+        # Start cleaner thread
+        self.thread_reference = threading.Thread(target=self.cleaner, args=())
+        self.thread_reference.start()
+
+    def __del__(self):
+        self.thread_reference.join()
+
+    def cleaner(self):
+        while (1):
+            time.sleep(1)
+            for conv in globals.conversation_objects:
+                if globals.conversation_objects[conv].markedForDeletion:
+                    globals.conversation_objects[conv].main_loop_bool = False
+                    globals.conversation_objects[conv].thread_reference.join()
+                    print(f"Deleting node {globals.conversation_objects[conv].conversation_id}.")
+                    del globals.conversation_objects[conv]
+                    print("Current Number of ongoing Conversations: ", len(globals.conversation_objects))
+                    break
+
+
 class conversation:
     def __init__(self, own_id):
         # Save the client ID
@@ -56,16 +78,21 @@ class conversation:
         # Keeps track of highest received packet number
         self.previousPacketNum = 0
 
+        # Keeps track of when was the last time this node contacted us
+        self.lastContact = int(time.time() * 1000)
+        
+        # If this reaches a 100 this node is being disconnected
+        self.missedCalls = 0
+        self.markedForDeletion = False
+        self.main_loop_bool = True
+
 
         # Start main loop thread
         self.thread_reference = threading.Thread(target=self.main_loop, args=( ))
         self.thread_reference.start()
 
-
-    def __del__(self):
-        # Kill Thread
-        self.thread_reference.join()
-        pass
+        # Send initial Hello
+        self.send_HelloPckt()
 
 
     def updateIP(self, new_address):
@@ -74,6 +101,11 @@ class conversation:
 
 
     def receive_packet(self, bytes):
+        # Update last contact
+        self.lastContact = int(time.time() * 1000)
+        self.missedCalls = 0
+        self.markedForDeletion = False
+
         # Decode full packet
         Pckt = packet.decode_packet(bytes)
 
@@ -129,7 +161,7 @@ class conversation:
                 print("Got SYN_ACK\n")
 
             case _:
-                pass
+                print("Got Unrecognized Packet Type\n")
 
 
     def send_ACK(self, packNum: int):
@@ -405,7 +437,7 @@ class conversation:
             for PacketNum in self.acks_for_sent:
                 if self.acks_for_sent[PacketNum] == False:
                     # Check if we have waited long enough (500ms)
-                    if int(time.time() * 1000) - self.timers[PacketNum] > 5000:
+                    if int(time.time() * 1000) - self.timers[PacketNum] > 500:
                         # Resend packet
                         print(f"Resending Packet {PacketNum}\n")
                         self.send_packet(self.sliding_window[PacketNum])
@@ -458,14 +490,11 @@ class conversation:
                     break
 
 
-
-
     # This main loop is running on the object's own thread
     def main_loop(self):
         # Check for new messages
-        while (1):
-
-            time.sleep(1)
+        while (self.main_loop_bool):
+            time.sleep(0.2)
 
             with self.buffer_lock:
                 if len(self.buffer) > 0:
@@ -517,7 +546,9 @@ class conversation:
                             # Client Node received Broadcast Result Packet
                             gotConsensus = consensus.decode_ResultBroadcast(self.buffer[0].Body)
                             globals.vote_manager_ref.receivedResult(gotConsensus)
-
+                        
+                        case _:
+                            print("Got Unknown Data Type Packet")
 
                     # Remove Packet from buffer as we are done with it
                     self.buffer.pop(0)
@@ -527,3 +558,13 @@ class conversation:
 
             # Check if we have to resend anything / if any packets waiting on an ACK have timed out
             self.resend_manager()
+
+            # Check if need to send SYN to verify node is still online (10s)
+            if int(time.time() * 1000) - self.lastContact > 10000:
+                self.missedCalls += 1
+                self.send_SYN()
+            
+            # Check if we have reached 100 missed calls
+            if self.missedCalls > 100:
+                print("Marking for deletion")
+                self.markedForDeletion = True
