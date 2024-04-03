@@ -58,17 +58,22 @@ class VoteManager:
             if dup is not None:
                 return
             
-            # Split Question at = sign
-            left, right = pckt.Question.split('=')
+            # # Split Question at = sign
+            # left, right = pckt.Question.split('=')
 
-            # Compute Response for Question
-            if eval(left.strip()) == eval(right.strip()):
+            # # Compute Response for Question
+            # if eval(left.strip()) == eval(right.strip()):
+            #     ans = consensus.Response.SAT
+            # else:
+            #     ans = consensus.Response.UNSAT
+            if (eval(pckt.Question.strip()) == True):
                 ans = consensus.Response.SAT
             else:
                 ans = consensus.Response.UNSAT
 
             # Save Response in voted_for dictionary for given VoteID
             self.voted_for[pckt.VoteID] = ans
+            print(f"My response is: {ans}\n")
 
             # Send Response to server
             receivedFrom.send_VoteResponse(pckt.VoteID, ans)
@@ -85,8 +90,8 @@ class VoteManager:
             # Add response for each convID (key) to Vote Class
             self.my_votes[pckt.VoteID].responses[convID] = consensus.Response(pckt.Response)
 
-            # Check if we gathered Responses from at least 60% of Clients
-            if len(self.my_votes[pckt.VoteID].responses) >= 3/5 * len(globals.conversation_objects):
+            # Check if we gathered Responses from at least 75% of Clients
+            if len(self.my_votes[pckt.VoteID].responses) >= 3/4 * len(globals.conversation_objects):
                 # Compute Result
                 result = statistics.multimode(self.my_votes[pckt.VoteID].responses.values())[0]
 
@@ -102,8 +107,9 @@ class VoteManager:
             if self.voted_for.get(pckt.VoteID) is not None:
                 # Check if consensus agrees with us
                 if pckt.Response != self.voted_for[pckt.VoteID]:
-                    print(f"Consensus disagrees with us, Consensus result: {pckt.Response}")
+                    print(f"Consensus disagrees with us, Consensus result: {pckt.Response}\n")
                     self.voted_for[pckt.VoteID] = pckt.Response
 
                 else: 
                     print(f"Consensus agrees with us!!!")
+                    print(f"Result: {pckt.Response}\n")

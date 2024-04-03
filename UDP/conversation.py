@@ -37,7 +37,7 @@ class conversation:
         # Sliding window parameters
         self.windowBottom = 1
         self.windowSize = 5
-        self.largestSeqNum = 1
+        self.largestPacketNum = 1
 
 
         # Receiving #########################################
@@ -53,8 +53,8 @@ class conversation:
         # Used with the received packets boolean dictionary
         self.received_lock = threading.Lock()
 
-        # Keeps track of highest received sequence number
-        self.previousSeqNum = 0
+        # Keeps track of highest received packet number
+        self.previousPacketNum = 0
 
 
         # Start main loop thread
@@ -83,64 +83,64 @@ class conversation:
                 # Update received boolean dictionary
                 with self.received_lock:
                     # Send ACK
-                    self.send_ACK(Pckt.Header.SequenceNum)
+                    self.send_ACK(Pckt.Header.PacketNum)
 
                     # Duplicate check
-                    dup = self.received.get(Pckt.Header.SequenceNum)
+                    dup = self.received.get(Pckt.Header.PacketNum)
                     if dup is not None:
                         return
 
                     # Dupe not found, so add to dictionary
-                    self.received[Pckt.Header.SequenceNum] = True
+                    self.received[Pckt.Header.PacketNum] = True
 
                     # Check if there is a jump in received packets
-                    if Pckt.Header.SequenceNum > self.previousSeqNum + 1:
-                        for missed in range(self.previousSeqNum + 1, Pckt.Header.SequenceNum):
-                            print(f"Sending NACK for {Pckt.Header.SequenceNum}\n")
+                    if Pckt.Header.PacketNum > self.previousPacketNum + 1:
+                        for missed in range(self.previousPacketNum + 1, Pckt.Header.PacketNum):
+                            print(f"Sending NACK for {Pckt.Header.PacketNum}\n")
                             self.send_NACK(missed)
 
-                    # Increase top seq number recorded if necessary
-                    if Pckt.Header.SequenceNum > self.previousSeqNum:
-                        self.previousSeqNum = Pckt.Header.SequenceNum
+                    # Increase top packet number recorded if necessary
+                    if Pckt.Header.PacketNum > self.previousPacketNum:
+                        self.previousPacketNum = Pckt.Header.PacketNum
 
                     # Mutex Lock to append packet to the buffer
                     with self.buffer_lock:
                         self.buffer.append(Pckt)
                     
             case packet.PacketType.ACK:
-                print(f"\nGot ACK for {Pckt.Header.SequenceNum}\n")
+                print(f"Got ACK for {Pckt.Header.PacketNum}\n")
                 # Received ACK for packet we sent
                 with self.sending_lock:
                     # Register ACK
-                    self.acks_for_sent[Pckt.Header.SequenceNum] = True
+                    self.acks_for_sent[Pckt.Header.PacketNum] = True
 
             case packet.PacketType.NACK:
-                print(f"\nGot NACK for {Pckt.Header.SequenceNum}\n")
+                print(f"Got NACK for {Pckt.Header.PacketNum}\n")
                 # Received NACK for missing packet
                 with self.sending_lock:
                     # Resend missing packet
-                    self.send_packet(self.sliding_window[Pckt.Header.SequenceNum])
+                    self.send_packet(self.sliding_window[Pckt.Header.PacketNum])
             
             case packet.PacketType.SYN:
-                print("Got SYN")
+                print("Got SYN\n")
                 self.send_SYNACK()
                 
             case packet.PacketType.SYN_ACK:
-                print("Got SYN_ACK \n")
-                # self.send_VoteRequest(uuid.uuid4(), "2+2=4")
+                print("Got SYN_ACK\n")
 
             case _:
                 pass
 
 
-    def send_ACK(self, seqNum: int):
+    def send_ACK(self, packNum: int):
         # Create ACK packet
         ack_packet = packet.Pckt(
             Header = packet.PcktHeader(
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
-                SequenceNum = seqNum,
+                PacketNum = packNum,
+                SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.ACK
             ),
@@ -151,14 +151,15 @@ class conversation:
         self.send_packet(ack_packet)
 
 
-    def send_NACK(self, seqNum: int):
+    def send_NACK(self, packNum: int):
         # Create NACK packet
         nack_packet = packet.Pckt(
             Header = packet.PcktHeader(
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
-                SequenceNum = seqNum,
+                PacketNum = packNum,
+                SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.NACK
             ),
@@ -176,6 +177,7 @@ class conversation:
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
+                PacketNum = 0,
                 SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.SYN
@@ -194,6 +196,7 @@ class conversation:
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
+                PacketNum = 0,
                 SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.SYN_ACK
@@ -215,13 +218,14 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True,
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_Hello(
                     consensus.PcktHello(
-                        ID = consensus.PcktID.hello_c2s,
+                        DataID = consensus.PcktID.hello_c2s,
                         Version = 0,
                         NumFeatures = 0,
                         Feature = bytes()
@@ -229,8 +233,8 @@ class conversation:
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = hello_packet
-            self.largestSeqNum += 1
+            self.sliding_window[self.largestPacketNum] = hello_packet
+            self.largestPacketNum += 1
 
 
     def send_HelloBackPckt(self):
@@ -243,13 +247,14 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True,
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_HelloResponse(
                     consensus.PcktHelloResponse(
-                        ID = consensus.PcktID.hello_back_s2c,
+                        DataID = consensus.PcktID.hello_back_s2c,
                         Version = 0,
                         NumFeatures = 0,
                         Feature = bytes()
@@ -257,8 +262,8 @@ class conversation:
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = helloback_packet
-            self.largestSeqNum += 1
+            self.sliding_window[self.largestPacketNum] = helloback_packet
+            self.largestPacketNum += 1
 
     
     def send_VoteRequest(self, voteID : uuid.UUID, question : str):
@@ -270,13 +275,14 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True, # this might be incorrect, depends on fragmentation
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_VoteRequest(
                     consensus.PcktVoteRequest(
-                        ID = consensus.PcktID.vote_c2s_request_vote,
+                        DataID = consensus.PcktID.vote_c2s_request_vote,
                         VoteID = voteID,
                         QuestionLength = len(question),
                         Question = question
@@ -284,8 +290,8 @@ class conversation:
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = vote_request_packet
-            self.largestSeqNum += 1 
+            self.sliding_window[self.largestPacketNum] = vote_request_packet
+            self.largestPacketNum += 1
 
 
     def send_VoteBroadcast(self, voteID : uuid.UUID, question : str):
@@ -295,13 +301,14 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True,
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_VoteBroadcast(
                     consensus.PcktVoteBroadcast(
-                        ID = consensus.PcktID.vote_s2c_broadcast_question,
+                        DataID = consensus.PcktID.vote_s2c_broadcast_question,
                         VoteID = voteID,
                         QuestionLength = len(question),
                         Question = question
@@ -309,8 +316,8 @@ class conversation:
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = vote_broadcast_packet
-            self.largestSeqNum += 1
+            self.sliding_window[self.largestPacketNum] = vote_broadcast_packet
+            self.largestPacketNum += 1
 
 
     def send_VoteResponse(self, voteID : uuid.UUID, response : consensus.Response):
@@ -320,21 +327,22 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True,
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_VoteResponse(
                     consensus.PcktVoteResponse(
-                        ID = consensus.PcktID.vote_c2s_response_to_question,
+                        DataID = consensus.PcktID.vote_c2s_response_to_question,
                         VoteID = voteID,
                         Response = response 
                     )
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = vote_response_packet
-            self.largestSeqNum += 1
+            self.sliding_window[self.largestPacketNum] = vote_response_packet
+            self.largestPacketNum += 1
 
     
     def send_BroadcastResult(self, voteID : uuid.UUID, result: consensus.Response):
@@ -344,21 +352,22 @@ class conversation:
                     Magic = globals.MAGIC,
                     Checksum = 0,
                     ConvID = globals.own_conv_id,
-                    SequenceNum = self.largestSeqNum,
+                    PacketNum = self.largestPacketNum,
+                    SequenceNum = 0,
                     Final = True,
                     Type = packet.PacketType.Data
                 ),
                 Body = consensus.encode_ResultBroadcast(
                     consensus.PcktVoteResultBroadcast(
-                        ID = consensus.PcktID.vote_s2c_broadcast_result,
+                        DataID = consensus.PcktID.vote_s2c_broadcast_result,
                         VoteID = voteID,
                         Response = result
                     )
                 )
             )
 
-            self.sliding_window[self.largestSeqNum] = vote_result_packet
-            self.largestSeqNum += 1
+            self.sliding_window[self.largestPacketNum] = vote_result_packet
+            self.largestPacketNum += 1
     
 
     def send_packet(self, Pckt: packet.Pckt):
@@ -372,7 +381,7 @@ class conversation:
         if Pckt.Header.Type == packet.PacketType.Data:
             with self.sending_lock:
                 # Check if has been sent before
-                acked = self.acks_for_sent.get(Pckt.Header.SequenceNum)
+                acked = self.acks_for_sent.get(Pckt.Header.PacketNum)
                 if acked is not None:
                     # Check if has been acked already
                     if acked == True:
@@ -380,12 +389,12 @@ class conversation:
                         return
 
                 # Create or Restart Timer if necessary, saving the current time in ms (don't ask why this works)
-                self.timers[Pckt.Header.SequenceNum] = int(time.time() * 1000)
+                self.timers[Pckt.Header.PacketNum] = int(time.time() * 1000)
 
                 # Set ACK received state to false
-                self.acks_for_sent[Pckt.Header.SequenceNum] = False
+                self.acks_for_sent[Pckt.Header.PacketNum] = False
 
-        # Send packet to receiving node (with 25% chance it will get lost, for testing purposes)
+        # Send packet to receiving node
         globals.own_socket.sendto(bytes(packet_bytearray), self.client_address)
 
 
@@ -393,24 +402,24 @@ class conversation:
     def resend_manager(self):
         with self.sr_function_lock:
             # Loop through dictionary for any packets with an ACKed status that is false
-            for SequenceNum in self.acks_for_sent:
-                if self.acks_for_sent[SequenceNum] == False:
+            for PacketNum in self.acks_for_sent:
+                if self.acks_for_sent[PacketNum] == False:
                     # Check if we have waited long enough (500ms)
-                    if int(time.time() * 1000) - self.timers[SequenceNum] > 5000:
+                    if int(time.time() * 1000) - self.timers[PacketNum] > 5000:
                         # Resend packet
-                        print(f"Resending Packet {SequenceNum}")
-                        self.send_packet(self.sliding_window[SequenceNum])
+                        print(f"Resending Packet {PacketNum}\n")
+                        self.send_packet(self.sliding_window[PacketNum])
 
 
     # This moves the sliding window
     def slide_window(self):
         # Check to make sure no packets were skipped
         with self.sr_function_lock:
-            for seqNum in range(1, self.windowBottom):
-                if self.sliding_window.get(seqNum) is not None:
-                    if self.acks_for_sent.get(seqNum) is not None:
-                        if self.acks_for_sent[seqNum] == False:
-                            print(f"Didn't get ACK for packet seq: {seqNum}")
+            for PackNum in range(1, self.windowBottom):
+                if self.sliding_window.get(PackNum) is not None:
+                    if self.acks_for_sent.get(PackNum) is not None:
+                        if self.acks_for_sent[PackNum] == False:
+                            print(f"Didn't get ACK for packet num: {PackNum}")
                             time.sleep(10)
 
 
@@ -420,34 +429,31 @@ class conversation:
             old_windowBottom = self.windowBottom
 
             # Move the window
-            for seqNum in range(old_windowBottom, old_windowBottom + self.windowSize):
-                # Check if the packet with the SeqNum actually exists
-                if self.sliding_window.get(seqNum) is not None:
-                    #print(f"Checking packet: {self.sliding_window[seqNum].Header.SequenceNum}\n")
+            for PackNum in range(old_windowBottom, old_windowBottom + self.windowSize):
+                # Check if the packet with the PackNum actually exists
+                if self.sliding_window.get(PackNum) is not None:
                     # Check if it has been sent
-                    if self.acks_for_sent.get(seqNum) is not None:
+                    if self.acks_for_sent.get(PackNum) is not None:
                         # Check if it has been ACKed
-                        if self.acks_for_sent[seqNum] == True:
+                        if self.acks_for_sent[PackNum] == True:
                             # If ACKed, we can move the window
                             self.windowBottom += 1
                         else:
                             # We have to stop here, window can't be moved
                             break
-
-            #print(f"\nWindow Bottom {self.windowBottom}\n")
             
             # Send not-yet-sent Packets within window
-            for seqNum in range(self.windowBottom, self.windowBottom + self.windowSize):
-                # Check if the packet with the SeqNum actually exists
-                if self.sliding_window.get(seqNum) is not None:
+            for PackNum in range(self.windowBottom, self.windowBottom + self.windowSize):
+                # Check if the packet with the PackNum actually exists
+                if self.sliding_window.get(PackNum) is not None:
                     # Check if it has been sent
-                    if self.acks_for_sent.get(seqNum) is not None:
+                    if self.acks_for_sent.get(PackNum) is not None:
                         print("Packet sent outside of the window detected")
                         return
                     else:
                         # It hasn't been sent so send it
-                        print(f"Sending packet with Sequence Number: {seqNum}.\n")
-                        self.send_packet(self.sliding_window[seqNum])
+                        #print(f"Sending packet with Number: {PackNum}.\n")
+                        self.send_packet(self.sliding_window[PackNum])
                 else:
                     break
 
@@ -459,7 +465,7 @@ class conversation:
         # Check for new messages
         while (1):
 
-            time.sleep(2)
+            time.sleep(0.5)
 
             with self.buffer_lock:
                 if len(self.buffer) > 0:
@@ -467,19 +473,19 @@ class conversation:
                     # Get and Check ID
                     match consensus.decode_pcktID(self.buffer[0].Body):
                         case consensus.PcktID.hello_c2s:
-                            print(f"Got Hello Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Hello Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
-                            # Send HelloBack just for testing for now
-                            for i in range(0, random.randint(1, 2)): self.send_HelloBackPckt()
+                            # Send HelloBack
+                            self.send_HelloBackPckt()
 
                         case consensus.PcktID.hello_back_s2c:
-                            print(f"Got Hello Back Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Hello Back Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
-                            # Send HelloBack just for testing for now
-                            for i in range(0, random.randint(1, 2)): self.send_HelloPckt()
+                            # Send HelloBack
+                            #self.send_HelloPckt()
                         
                         case consensus.PcktID.vote_c2s_request_vote:
-                            print(f"Got Request Vote Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Request Vote Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
                             # Server received VoteRequest Packet
                             # Create New Vote through VoteManager, to broadcast to other nodes
@@ -488,7 +494,7 @@ class conversation:
                             
 
                         case consensus.PcktID.vote_s2c_broadcast_question:
-                            print(f"Got Broadcast Question Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Broadcast Question Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
                             # Client Node received Broadcast Question Packet
                             # Respond to Question
@@ -497,7 +503,7 @@ class conversation:
 
 
                         case consensus.PcktID.vote_c2s_response_to_question:
-                            print(f"Got Response to Question Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Response to Question Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
                             # Server received Response to Question Packet from all nodes -> calls VoteManager
                             # Compute Consensus Response
@@ -506,7 +512,7 @@ class conversation:
                             
 
                         case consensus.PcktID.vote_s2c_broadcast_result:
-                            print(f"Got Broadcast Result Packet Sequence Number: {self.buffer[0].Header.SequenceNum} from {self.buffer[0].Header.ConvID}.\n")
+                            print(f"Got Broadcast Result Packet with Packet Number: {self.buffer[0].Header.PacketNum} from {self.buffer[0].Header.ConvID}.\n")
 
                             # Client Node received Broadcast Result Packet
                             gotConsensus = consensus.decode_ResultBroadcast(self.buffer[0].Body)

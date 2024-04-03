@@ -10,7 +10,7 @@ def listener():
         data, client_address = globals.own_socket.recvfrom(4096)
         if data:
             # Extract Packet Header
-            pckt_header = packet.decode_header(data[:20])
+            pckt_header = packet.decode_header(data[:24])
 
             # Check Magic
             if pckt_header.Magic != globals.MAGIC:
@@ -29,6 +29,7 @@ def listener():
                         Magic = globals.MAGIC,
                         Checksum = 0,
                         ConvID = globals.generate_convID(),
+                        PacketNum = 0,
                         SequenceNum = 0,
                         Final = True,
                         Type = packet.PacketType.PING_RES

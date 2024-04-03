@@ -6,8 +6,7 @@ from listener import listener
 import struct
 import zlib
 import vote
-import sys
-import uuid
+
 # Import the command line interface
 from command_line_interface import commandlineinterface
 
@@ -28,6 +27,7 @@ def start_client():
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
+                PacketNum = 0,
                 SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.PING_REQ
@@ -44,7 +44,7 @@ def start_client():
 
 
     # Obtained Conversation ID
-    print(f"My ConvID is {globals.own_conv_id}\n")
+    print(f"\nMy ConvID is {globals.own_conv_id}\n")
 
     # Send SYN packet to initialize conversation with server
     if len(globals.conversation_objects) == 0:
@@ -53,6 +53,7 @@ def start_client():
                 Magic = globals.MAGIC,
                 Checksum = 0,
                 ConvID = globals.own_conv_id,
+                PacketNum = 0,
                 SequenceNum = 0,
                 Final = True,
                 Type = packet.PacketType.SYN
@@ -72,16 +73,8 @@ def start_client():
 
     # Command line interface 
     cli = commandlineinterface()
-    cli.go_to_client()
+    #cli.go_to_client()
 
-    # Returns the question typed in by user
-    question = cli.question
-    print(F"Your question is '", question, "', sending this to the server.")
-
-    # Send Vote Request packet with our question 
-    if len(question) != 0 and len(globals.conversation_objects) == 1:
-        for conv in globals.conversation_objects:
-            globals.conversation_objects[conv].send_VoteRequest(uuid.uuid4(), question)
 
 start_client()
     

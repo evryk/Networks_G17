@@ -7,7 +7,7 @@ def start_server():
     server_address = ('localhost', 8080) # IP, port
     globals.own_socket.bind(server_address)
 
-    print("Server is listening on port 8080")
+    print("\nServer is listening on port 8080\n")
 
     # create unique conversation ID
     globals.own_conv_id = globals.generate_convID()
