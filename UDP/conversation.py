@@ -35,9 +35,9 @@ class conversation:
         self.sr_function_lock = threading.Lock()
 
         # Sliding window parameters
-        self.windowBottom = 1
+        self.windowBottom = 0
         self.windowSize = 5
-        self.largestPacketNum = 1
+        self.largestPacketNum = 0
 
 
         # Receiving #########################################
@@ -227,8 +227,8 @@ class conversation:
                     consensus.PcktHello(
                         DataID = consensus.PcktID.hello_c2s,
                         Version = 0,
-                        NumFeatures = 0,
-                        Feature = bytes()
+                        NumFeatures = 1,
+                        Feature = [1]
                     )
                 )
             )
@@ -256,8 +256,8 @@ class conversation:
                     consensus.PcktHelloResponse(
                         DataID = consensus.PcktID.hello_back_s2c,
                         Version = 0,
-                        NumFeatures = 0,
-                        Feature = bytes()
+                        NumFeatures = 1,
+                        Feature = [1]
                     )
                 )
             )
@@ -448,11 +448,11 @@ class conversation:
                 if self.sliding_window.get(PackNum) is not None:
                     # Check if it has been sent
                     if self.acks_for_sent.get(PackNum) is not None:
-                        print("Packet sent outside of the window detected")
+                        #print("Packet sent outside of the window detected")
                         return
                     else:
                         # It hasn't been sent so send it
-                        print(f"Sending packet with Number: {PackNum}.\n")
+                        #print(f"Sending packet with Number: {PackNum}.\n")
                         self.send_packet(self.sliding_window[PackNum])
                 else:
                     break

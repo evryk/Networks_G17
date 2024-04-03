@@ -55,7 +55,7 @@ class commandlineinterface:
     def run(self):
         with self.vote_lock:
             while True:
-                time.sleep(8)
+                time.sleep(5)
                 command = input("Enter a command (type 'help' for command glossary): ")
                 if command.lower() == "quit":
                     self.exit()
