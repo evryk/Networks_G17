@@ -14,7 +14,7 @@ class commandlineinterface:
         print("If you wish to request a vote, type 'request vote' into the command and press enter.")
         print("If you wish to obtain your conversation ID, type 'id' into the command and press enter.")
         #  print("If you wish to return the Server Address, type 'server address' into the command and press enter.")
-        print("If you wish to exit the server, type 'quit' into the command line")
+        print("If you wish to exit the server, type '", "\033[31m", "quit", "\033[37m","' into the command line")
         print("-------------------------------------")
         self.run()
 
@@ -29,7 +29,7 @@ class commandlineinterface:
 
 # Quitting the server, this will quit for the client.py file also
     def exit(self):
-        print("Quitting the server...")
+        print("\033[31m", "Quitting the server...")
         sys.exit()
 
 # Running the operation, this will be called from the conversation file to run the programme. 
@@ -64,11 +64,11 @@ class commandlineinterface:
         self.run()
 
     def display_welcome_once(self):
-        print("  V    V  OOO   TTTTT  IIIII  N   N  GGGGG    SSSS  Y   Y  SSSS  TTTTT  EEEEE  M   M")
-        print("  V    V O   O    T      I    NN  N  G       S       Y  Y  S       T    E      MM MM")
-        print("  V    V O   O    T      I    N N N  G  GG    SSS      Y     SSS   T    EEE    M M M")
-        print("  VV  VV  O   O   T      I    N  NN  G   G      S     Y        S   T    E      M   M")
-        print("   VVVV    OOO    T    IIIII  N   N   GGGG  SSSS     Y     SSSS    T    EEEEE  M   M\n\n")                                                       
+        print("  V    V   OOO   TTTTT  IIIII  N   N  GGGGG    SSSS  Y   Y  SSSS  TTTTT  EEEEE  M   M")
+        print("  V    V  O   O    T      I    NN  N  G       S       Y  Y  S       T    E      MM MM")
+        print("  V    V  O   O    T      I    N N N  G  GG    SSS      Y     SSS   T    EEE    M M M")
+        print("  VV  VV  O   O    T      I    N  NN  G   G      S     Y        S   T    E      M   M")
+        print("   VVVV    OOO     T    IIIII  N   N   GGGG  SSSS     Y     SSSS    T    EEEEE  M   M\n\n")                                                       
         print("                        Welcome to the Voting System! \n\n")  
 
         
