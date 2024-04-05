@@ -47,7 +47,7 @@ class commandlineinterface:
 
     # Quitting the server, this will quit for the client.py file also
     def exit(self):
-        print("\033[31m", "Quitting the system...")
+        print("\033[31m", "Quitting the system...", "\033[37m")
         #sys.exit()
         os._exit(0)
 
