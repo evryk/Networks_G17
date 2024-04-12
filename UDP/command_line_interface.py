@@ -1,4 +1,3 @@
-import sys
 import globals
 import uuid
 import time
@@ -48,7 +47,6 @@ class commandlineinterface:
     # Quitting the server, this will quit for the client.py file also
     def exit(self):
         print("\033[31m", "Quitting the system...", "\033[37m")
-        #sys.exit()
         os._exit(0)
 
     # Running the operation, this will be called from the conversation file to run the programme. 

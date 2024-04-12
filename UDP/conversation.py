@@ -1,4 +1,3 @@
-import socket
 import threading
 import time
 import packet
@@ -426,8 +425,11 @@ class conversation:
                 # Set ACK received state to false
                 self.acks_for_sent[Pckt.Header.PacketNum] = False
 
-        # Send packet to receiving node
-        globals.own_socket.sendto(bytes(packet_bytearray), self.client_address)
+        # Send packet to receiving node (with 25% chance it will get lost)
+        if random.randint(0, 3) == 1:
+            print(f"Packet Sequence Number: {Pckt.Header.SequenceNum} will be lost\n")
+        else:
+            globals.own_socket.sendto(bytes(packet_bytearray), self.client_address)
 
 
     # This loops through the acks_for_sent dictionary, resending un-ACKed packets that have timed out
@@ -480,7 +482,6 @@ class conversation:
                 if self.sliding_window.get(PackNum) is not None:
                     # Check if it has been sent
                     if self.acks_for_sent.get(PackNum) is not None:
-                        #print("Packet sent outside of the window detected")
                         return
                     else:
                         # It hasn't been sent so send it
