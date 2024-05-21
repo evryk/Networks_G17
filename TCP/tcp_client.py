@@ -15,11 +15,3 @@ def start_client():
     client_socket.close()
 
 start_client()
-
-#def handle_multiple_connections():
-#    for i in range(10):  # For example, create 10 client connections
-#        client_thread = threading.Thread(target=start_client)
-#        client_thread.start()
-
-#if __name__ == "__main__":
-#    handle_multiple_connections()
